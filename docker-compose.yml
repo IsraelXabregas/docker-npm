@@ -1,0 +1,39 @@
+version: "3.8"
+services:
+  server:
+    image: jc21/nginx-proxy-manager:latest
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      placement:
+        constraints: [ node.role == manager ]
+    volumes:
+      - nlb_ingress_data:/data
+      - nlb_ingress_letsencrypt:/etc/letsencrypt
+    networks:
+      - nlb_ingress
+    ports:
+      - 80:80
+      - 443:443
+      - 81:81
+    environment:
+      DB_SQLITE_FILE: ${DB_SQLITE_FILE}
+      DISABLE_IPV6: ${DISABLE_IPV6}
+
+volumes:
+  nlb_ingress_data:
+      external: true
+  nlb_ingress_letsencrypt:
+      external: true
+
+networks:
+  nlb_ingress:
+      external: true
